@@ -10,23 +10,28 @@ import webbrowser as wb
 from functools import partial
 
 try:
-    from PyQt5.QtGui import *
-    from PyQt5.QtCore import *
-    from PyQt5.QtWidgets import *
+    from PyQt5.QtGui import QImage,QCursor,QImageReader,QPixmap
+    from PyQt5.QtCore import Qt,QSize,QPoint,QVariant,QByteArray\
+        ,QTimer,QFileInfo,QPointF,QProcess
+    from PyQt5.QtWidgets import QMainWindow,QApplication,QCheckBox,QVBoxLayout\
+        ,QHBoxLayout,QWidget,QToolButton,QListWidget,QDockWidget\
+        ,QWidgetAction,QScrollArea,QLabel,QMessageBox,QFileDialog\
+        ,QListWidgetItem
+
 except ImportError:
     # needed for py3+qt4
     # Ref:
-    # http://pyqt.sourceforge.net/Docs/PyQt4/incompatible_apis.html
-    # http://stackoverflow.com/questions/21217399/pyqt4-qtcore-qvariant-object-instead-of-a-string
+    # http://pyqt.sourceforge.net/Docs/PyQt5/incompatible_apis.html
+    # http://stackoverflow.com/questions/21217399/PyQt5-qtcore-qvariant-object-instead-of-a-string
     if sys.version_info.major >= 3:
         import sip
         sip.setapi('QVariant', 2)
     from PyQt4.QtGui import *
-    from PyQt4.QtCore import *
+    from PyQt4.QtCore import Qt
 
 from libs.combobox import ComboBox
 from libs.default_label_combobox import DefaultLabelComboBox
-from libs.resources import *
+from resources import *
 from libs.constants import *
 from libs.utils import *
 from libs.settings import Settings
@@ -59,6 +64,12 @@ class WindowMixin(object):
         return menu
 
     def toolbar(self, title, actions=None):
+        '''
+        实现左侧工具栏
+        :param title:
+        :param actions:
+        :return:
+        '''
         toolbar = ToolBar(title)
         toolbar.setObjectName(u'%sToolBar' % title)
         # toolbar.setOrientation(Qt.Vertical)
@@ -84,6 +95,7 @@ class MainWindow(QMainWindow, WindowMixin):
         self.os_name = platform.system()
 
         # Load string bundle for i18n
+        #多国语言翻译显示
         self.string_bundle = StringBundle.get_bundle()
         get_str = lambda str_id: self.string_bundle.get_string(str_id)
 
@@ -114,7 +126,7 @@ class MainWindow(QMainWindow, WindowMixin):
         else:
             print("Not find:/data/predefined_classes.txt (optional)")
 
-        # Main widgets and related state.
+        # 标注标签窗口
         self.label_dialog = LabelDialog(parent=self, list_item=self.label_hist)
 
         self.items_to_shapes = {}
@@ -164,7 +176,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
 
 
-        self.dock = QDockWidget(get_str('boxLabelText'), self)
+        self.dock = QDockWidget(get_str( 'boxLabelText'),self)
         self.dock.setObjectName(get_str('labels'))
         self.dock.setWidget(label_list_container)
 
@@ -175,7 +187,7 @@ class MainWindow(QMainWindow, WindowMixin):
         file_list_layout.addWidget(self.file_list_widget)
         file_list_container = QWidget()
         file_list_container.setLayout(file_list_layout)
-        self.file_dock = QDockWidget(get_str('fileList'), self)
+        self.file_dock = QDockWidget(get_str( 'fileList'),self)
         self.file_dock.setObjectName(get_str('files'))
         self.file_dock.setWidget(file_list_container)
 
@@ -211,7 +223,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
         # Actions
         action = partial(new_action, self)
-        quit = action(get_str('quit'), self.close,
+        quit = action((get_str('quit')), self.close,
                       'Ctrl+Q', 'quit', get_str('quitApp'))
 
         open = action(get_str('openFile'), self.open_file,
@@ -227,11 +239,11 @@ class MainWindow(QMainWindow, WindowMixin):
                                  'Ctrl+Shift+O', 'open', get_str('openAnnotationDetail'))
         copy_prev_bounding = action(get_str('copyPrevBounding'), self.copy_previous_bounding_boxes, 'Ctrl+v', 'copy', get_str('copyPrevBounding'))
 
-        open_next_image = action(get_str('nextImg'), self.open_next_image,
-                                 'd', 'next', get_str('nextImgDetail'))
+        open_next_image = action(get_str('nextImg'), self.open_next_image,  #增加键盘右键切换下一张图片
+                                 Qt.Key_Right, 'next', get_str('nextImgDetail'))
 
-        open_prev_image = action(get_str('prevImg'), self.open_prev_image,
-                                 'a', 'prev', get_str('prevImgDetail'))
+        open_prev_image = action(get_str('prevImg'), self.open_prev_image,  #增加键盘左键切换上一张图片
+                                 Qt.Key_Left, 'prev', get_str('prevImgDetail'))
 
         verify = action(get_str('verifyImg'), self.verify_image,
                         'space', 'verify', get_str('verifyImgDetail'))
@@ -349,7 +361,7 @@ class MainWindow(QMainWindow, WindowMixin):
         self.label_list.customContextMenuRequested.connect(
             self.pop_label_list_menu)
 
-        # Draw squares/rectangles
+        # Draw squares/rectangles 绘制正方形
         self.draw_squares_option = QAction(get_str('drawSquares'), self)
         self.draw_squares_option.setShortcut('Ctrl+Shift+R')
         self.draw_squares_option.setCheckable(True)
@@ -494,6 +506,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
         # Since loading the file may take some time, make sure it runs in the background.
         if self.file_path and os.path.isdir(self.file_path):
+            #partial偏函数，类似装饰器，用来增强函数
             self.queue_event(partial(self.import_dir_images, self.file_path or ""))
         elif self.file_path:
             self.queue_event(partial(self.load_file, self.file_path or ""))
@@ -1300,6 +1313,11 @@ class MainWindow(QMainWindow, WindowMixin):
         self.import_dir_images(target_dir_path)
 
     def import_dir_images(self, dir_path):
+        """
+        导入图片
+        :param dir_path:
+        :return:
+        """
         if not self.may_continue() or not dir_path:
             return
 
@@ -1310,8 +1328,9 @@ class MainWindow(QMainWindow, WindowMixin):
         self.m_img_list = self.scan_all_images(dir_path)
         self.img_count = len(self.m_img_list)
         self.open_next_image()
-        for imgPath in self.m_img_list:
-            item = QListWidgetItem(imgPath)
+        for i,imgPath in  enumerate(self.m_img_list): #显示序号和总数
+            i_img="({} / {})".format(i+1,self.img_count)+imgPath
+            item = QListWidgetItem(i_img)
             self.file_list_widget.addItem(item)
 
     def verify_image(self, _value=False):
@@ -1354,8 +1373,13 @@ class MainWindow(QMainWindow, WindowMixin):
         if self.cur_img_idx - 1 >= 0:
             self.cur_img_idx -= 1
             filename = self.m_img_list[self.cur_img_idx]
-            if filename:
-                self.load_file(filename)
+            self.file_list_widget.setCurrentRow(self.cur_img_idx) #增加自动更新ListWidget内容滚动条
+        else:
+            self.cur_img_idx=self.img_count-1  #增加循环切换功能，即第一张的前一张是最后一张
+            filename = self.m_img_list[self.cur_img_idx]
+            self.file_list_widget.setCurrentRow(self.cur_img_idx)
+        if filename:
+            self.load_file(filename)
 
     def open_next_image(self, _value=False):
         # Proceeding next image without dialog if having any label
@@ -1384,7 +1408,11 @@ class MainWindow(QMainWindow, WindowMixin):
             if self.cur_img_idx + 1 < self.img_count:
                 self.cur_img_idx += 1
                 filename = self.m_img_list[self.cur_img_idx]
-
+                self.file_list_widget.setCurrentRow(self.cur_img_idx) #增加自动更新ListWidget内容滚动条
+            else:
+                self.cur_img_idx = 0    #增加循环切换功能，即最后一张的下一张是第一张
+                filename = self.m_img_list[0]
+                self.file_list_widget.setCurrentRow(self.cur_img_idx)
         if filename:
             self.load_file(filename)
 

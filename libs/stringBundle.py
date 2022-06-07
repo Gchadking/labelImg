@@ -12,15 +12,18 @@ import locale
 from libs.ustr import ustr
 
 try:
-    from PyQt5.QtCore import *
+    from PyQt5.QtCore import QFile,QIODevice,QTextStream
 except ImportError:
     if sys.version_info.major >= 3:
         import sip
         sip.setapi('QVariant', 2)
-    from PyQt4.QtCore import *
+    from PyQt5.QtCore import QFile
 
 
 class StringBundle:
+    '''
+    国际化语言显示，通过resources.strings 提供简体，繁体中文，日文等语言翻译
+    '''
 
     __create_key = object()
 

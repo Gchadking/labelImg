@@ -1,8 +1,8 @@
 
 try:
-    from PyQt5.QtGui import *
-    from PyQt5.QtCore import *
-    from PyQt5.QtWidgets import *
+    from PyQt5.QtGui import QPainter,QColor,QBrush,QPixmap,QCursor
+    from PyQt5.QtCore import pyqtSignal,QPointF,QPoint,Qt
+    from PyQt5.QtWidgets import QWidget,QApplication,QMenu
 except ImportError:
     from PyQt4.QtGui import *
     from PyQt4.QtCore import *
@@ -175,7 +175,7 @@ class Canvas(QWidget):
 
         # Polygon/Vertex moving.
         if Qt.LeftButton & ev.buttons():
-            if self.selected_vertex():
+            if self.selected_vertex():  #移动顶点
                 self.bounded_move_vertex(pos)
                 self.shapeMoved.emit()
                 self.repaint()
@@ -187,7 +187,7 @@ class Canvas(QWidget):
                 current_height = abs(point1.y() - point3.y())
                 self.parent().window().label_coordinates.setText(
                         'Width: %d, Height: %d / X: %d; Y: %d' % (current_width, current_height, pos.x(), pos.y()))
-            elif self.selected_shape and self.prev_point:
+            elif self.selected_shape and self.prev_point: #移动矩形框
                 self.override_cursor(CURSOR_MOVE)
                 self.bounded_move_shape(self.selected_shape, pos)
                 self.shapeMoved.emit()
@@ -375,6 +375,7 @@ class Canvas(QWidget):
 
     def calculate_offsets(self, shape, point):
         rect = shape.bounding_rect()
+
         x1 = rect.x() - point.x()
         y1 = rect.y() - point.y()
         x2 = (rect.x() + rect.width()) - point.x()

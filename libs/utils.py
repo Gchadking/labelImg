@@ -5,9 +5,9 @@ import re
 import sys
 
 try:
-    from PyQt5.QtGui import *
-    from PyQt5.QtCore import *
-    from PyQt5.QtWidgets import *
+    from PyQt5.QtGui import QIcon,QColor,QRegExpValidator
+    from PyQt5.QtCore import QRegExp,QT_VERSION_STR
+    from PyQt5.QtWidgets import QPushButton,QMenu,QAction
     QT5 = True
 except ImportError:
     from PyQt4.QtGui import *

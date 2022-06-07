@@ -1,7 +1,7 @@
 try:
-    from PyQt5.QtGui import *
-    from PyQt5.QtCore import *
-    from PyQt5.QtWidgets import *
+    from PyQt5.QtGui import QCursor
+    from PyQt5.QtCore import QStringListModel,Qt,QPoint
+    from PyQt5.QtWidgets import QLineEdit,QListWidget,QDialogButtonBox,QDialog,QVBoxLayout,QCompleter
 except ImportError:
     from PyQt4.QtGui import *
     from PyQt4.QtCore import *
@@ -29,7 +29,7 @@ class LabelDialog(QDialog):
 
         layout = QVBoxLayout()
         layout.addWidget(self.edit)
-        self.button_box = bb = BB(BB.Ok | BB.Cancel, Qt.Horizontal, self)
+        self.button_box = bb = BB(BB.Ok | BB.Cancel,Qt.Horizontal, self)
         bb.button(BB.Ok).setIcon(new_icon('done'))
         bb.button(BB.Cancel).setIcon(new_icon('undo'))
         bb.accepted.connect(self.validate)

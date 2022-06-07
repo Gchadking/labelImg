@@ -3,8 +3,8 @@
 
 
 try:
-    from PyQt5.QtGui import *
-    from PyQt5.QtCore import *
+    from PyQt5.QtGui import QPen,QPainterPath,QColor,QFont
+    # from PyQt5.QtCore import
 except ImportError:
     from PyQt4.QtGui import *
     from PyQt4.QtCore import *
@@ -34,7 +34,7 @@ class Shape(object):
     vertex_fill_color = DEFAULT_VERTEX_FILL_COLOR
     h_vertex_fill_color = DEFAULT_HVERTEX_FILL_COLOR
     point_type = P_ROUND
-    point_size = 16
+    point_size = 8
     scale = 1.0
     label_font_size = 8
 
